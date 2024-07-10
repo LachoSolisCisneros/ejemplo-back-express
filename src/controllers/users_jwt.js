@@ -15,8 +15,8 @@ db.connect((err) => {
 });
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
-  db.query('SELECT * FROM users WHERE email = ? and password = ?', [email, password], async (err, result) => {
+  const { email, password } = req.body;  
+  db.query('SELECT * FROM users WHERE email = ?', [email], async (err, result) => {
     if (err) {
       res.status(500).send('Error en el servidor');
       throw err;
@@ -26,7 +26,10 @@ exports.login = async (req, res) => {
     }
     const user = result[0];
     // Verificar contraseña (con bcrypt)
+    console.log(password)
+    console.log(user.password)
     const validPassword = await bcrypt.compare(password, user.password);
+
     if (!validPassword) {
       return res.status(401).send('Credenciales inválidas');
     }
@@ -69,8 +72,7 @@ exports.addUser = [authenticateJWT, (req, res) => {
       res.status(500).send('Error al hashear la contraseña');
       throw err;
     }
-    newUser.password = hash;
-
+    newUser.password = hash;    
     db.query('INSERT INTO users SET ?', newUser, (err, result) => {
       if (err) {
         res.status(500).send('Error al agregar el usuario');

@@ -43,8 +43,8 @@ exports.addUser = (req, res) => {
       res.status(500).send('Error al hashear la contraseña');
       return; // Stop execution if there's an error hashing
     }
-    newUser.password = hash;  
-    db.query('INSERT INTO users SET ?', newUser, (err, result) => {
+    newUser.password = hash;      
+    db.query('INSERT INTO users VALUES(?,?,?)', [newUser.id, newUser.email,newUser.password], (err, result) => {
       if (err) {
         res.status(500).send('Error al agregar el usuario');
         return; // Stop execution if there's an error inserting
