@@ -6,10 +6,16 @@ const ventasRoutes = require('./routes/ventas')
 require('dotenv').config();
 const app = express();
 const port = process.env.DB_PORT || 3000;
+const cors = require('cors');
 
 // Middleware para analizar los cuerpos de las solicitudes
 app.use(bodyParser.json());
-
+// Middleware CORS con configuración específica
+app.use(cors({
+  origin: 'http://localhost:3000', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 // Usar las rutas de los items
 app.use('/users', usersRoutes);
 app.use('/usersJWT', usersJWTRoutes);

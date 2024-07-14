@@ -15,25 +15,27 @@ db.connect((err) => {
 });
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;  
+  const { email, password } = req.body;
+  //console.log("Datos recibidos:", email, password);
   db.query('SELECT * FROM users WHERE email = ?', [email], async (err, result) => {
     if (err) {
+      console.error("Error en la consulta SQL:", err);
       res.status(500).send('Error en el servidor');
-      throw err;
+      return;
     }
-    if (result.length === 0) {
+    if (!result || result.length === 0) {
+      console.log("No se encontró el usuario");
       return res.status(401).send('Credenciales inválidas');
     }
-    const user = result[0];
-    // Verificar contraseña (con bcrypt)
-    console.log(password)
-    console.log(user.password)
-    const validPassword = await bcrypt.compare(password, user.password);
 
+    const user = result[0];
+    //console.log("Usuario encontrado:", user);
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    //console.log("Contraseña válida:", validPassword);
     if (!validPassword) {
       return res.status(401).send('Credenciales inválidas');
     }
-    // Generar JWT
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
   });
@@ -45,15 +47,16 @@ const authenticateJWT = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (err) {
-        return res.sendStatus(403); // Prohibido (token inválido)
+        return res.sendStatus(403); 
       }
       req.user = user;
       next();
     });
   } else {
-    res.sendStatus(401); // No autorizado (sin token)
+    res.sendStatus(401); 
   }
 };
+exports.authenticateJWT = authenticateJWT;
 // Rutas protegidas con autenticación JWT
 exports.getAllUsers = [authenticateJWT, (req, res) => {
   db.query('SELECT * FROM users', (err, result) => {
